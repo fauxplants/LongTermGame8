@@ -16,15 +16,21 @@ namespace Ltg8
         [Required] public InMemorySaveSerializer inMemorySaveSerializer;
         [Required] public FmodValueAnimator fmodValueAnimator;
         [Required] public PersistentAudio persistentAudio;
-        [Required] public GameStateMachine gameStateMachine;
+        [Required] public Camera mainCamera;
+        [Required] public TextBoxPresenter textBoxPresenter;
     
         private void Awake()
         {
             Ltg8.Settings = settings;
             Ltg8.FmodValueAnimator = fmodValueAnimator;
             Ltg8.PersistentAudio = persistentAudio;
-            Ltg8.StateMachine = gameStateMachine;
+            Ltg8.GameState = new AsyncStateMachine<IGameState>();
+            Ltg8.TextBoxPresenter = textBoxPresenter;
             Ltg8.Save = new SaveData();
+            Ltg8.MainCamera = mainCamera;
+            Ltg8.Controls = new Ltg8Controls();
+            Ltg8.Controls.Enable();
+            
 #if UNITY_EDITOR
             switch (Ltg8.Settings.editorSaveStrategy)
             {
@@ -43,6 +49,11 @@ namespace Ltg8
 #else
             Ltg8.Serializer = diskSaveSerializer;
 #endif
+        }
+
+        private void Update()
+        {
+            Ltg8.GameState.CurrentState?.OnUpdate();
         }
     }
 }

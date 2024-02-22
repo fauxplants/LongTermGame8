@@ -15,7 +15,7 @@ namespace Ltg8
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static async void Initialize()
         {
-            Ltg8Settings settings = await Addressables.LoadAssetAsync<Ltg8Settings>("Ltg8Settings").Task;
+            Ltg8Settings settings = Addressables.LoadAssetAsync<Ltg8Settings>("Ltg8Settings").WaitForCompletion();
             string currentScenePath = SceneManager.GetActiveScene().path;
 
             if (currentScenePath != settings.persistentScenePath)
@@ -30,7 +30,7 @@ namespace Ltg8
                 case EditorPlayStrategy.FromStartOfGame:
                 {
                     // If have a more complex start-up, we would make a new state for that here.
-                    await Ltg8.StateMachine.TransitionTo(new MainMenuGameState());
+                    await Ltg8.GameState.TransitionTo(new MainMenuGameState());
                     break;
                 }
                 case EditorPlayStrategy.FromCurrentScene:
@@ -40,13 +40,15 @@ namespace Ltg8
                         break;
 
                     await Ltg8.Serializer.ReadFromDisk(settings.editorSaveId);
-                    await Ltg8.StateMachine.TransitionTo(new OverworldGameState(currentScenePath));
+                    await Ltg8.GameState.TransitionTo(new OverworldGameState(currentScenePath));
                     break;
                 }
                 default: throw new ArgumentOutOfRangeException();
             }
 #else
-            await Ltg8.StateMachine.TransitionTo(new MainMenuGameState());
+            // await Ltg8.StateMachine.TransitionTo(new MainMenuGameState());
+            await SceneManager.LoadSceneAsync(1, LoadSceneMode.Additive);
+            SceneManager.SetActiveScene(SceneManager.GetSceneByBuildIndex(1));
 #endif
         }
     }
